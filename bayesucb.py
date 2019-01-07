@@ -208,6 +208,7 @@ class BayesUCB:
 		self.simulation = simulation
 		self.util = utils.Util()
 		self.recommend_song()
+		#self.util.add_expected_rating(0)
 
 	def recommend(self):
 		return self.recommended_song_ids[-1]
@@ -262,5 +263,6 @@ class BayesUCB:
 			t_i = time_vectors[:,i].reshape((time_vectors.shape[0],1))
 
 			quantiles.append(calculate_quantile(x_i, t_i, x_mean_coeff, x_var_coeff, t_mean_coeff, t_var_coeff, 1 - 1/(N + 1), 10000))
-
+		self.util.add_expected_rating(np.max(quantiles))
+		print('expected rating', np.max(quantiles))
 		return np.argmax(quantiles)

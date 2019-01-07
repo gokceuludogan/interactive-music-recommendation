@@ -15,13 +15,14 @@ class Util:
 		start_time = today - relativedelta(minutes=1)
 		self.last_listened_times  = np.array([np.datetime64(start_time)] * self.data.shape[0]) 
 		self.epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
+		self.expected_ratings = []
 
 	def add_recommendation(self, song_id, simulation):
 		self.history.append((song_id, -1))
 		#if simulation:
 		#	self.last_listened_times[song_id] = np.datetime64(datetime.now()) - np.timedelta64(np.random.randint(1000),'m')
 		#else:
-		self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (np.timedelta64(np.random.randint(5), 's') + 1)
+		self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (np.timedelta64(0, 's') + 1)
 
 	def get_number_of_songs(self):
 		return self.data.shape[0]
@@ -30,7 +31,11 @@ class Util:
 		return self.data.shape[1]
 
 	def add_rating(self, rating):
+		print("add rating")
 		self.history[-1] = (self.history[-1][0], rating)
+
+	def add_expected_rating(self, rating):
+		self.expected_ratings.append(rating)
 
 	def get_history_times(self):
 		times = [(np.datetime64(datetime.now()) - self.last_listened_times[x[0]]).astype('timedelta64[ms]').astype('int') for x in self.history]
@@ -60,9 +65,15 @@ class Util:
 		times = self.get_all_times()
 		times_discretized = np.array([vectorize(i, self.epsilon) for i in times])
 		#print(times_discretized.shape)
-		concat_data =  np.append(self.data, times_discretized, axis=1)
+		concat_data =  np.append(self.data, times[:, None], axis=1)
 		xmax, xmin = concat_data.max(), concat_data.min()
 		return (concat_data - xmin)/(xmax - xmin)	
+
+	def get_cumulative_regret(self):
+		print(self.expected_ratings)
+		print([i[1] for i in self.history[:-1]])
+		return (np.absolute(np.array(self.expected_ratings) - np.array([i[1] for i in self.history[:-1]]))).cumsum()
+
 
 def vectorize(t, epsilon):
 	# print(t)

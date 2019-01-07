@@ -37,12 +37,15 @@ class LinUCB:
 			#print(A_inv)
 			ta = x.T.dot(A_inv).dot(x)
 			#print(x)
-			#print(x.T.dot(x))
-			#print(ta)
+			#print(A_inv)
+			#print(x)
+			#print('ta', ta)
 			a_upper_ci = self.alpha * np.sqrt(ta)
 			a_mean = self.theta_hat.dot(x)
+			a_mean_with_sum = sum([self.theta_hat[i] * x[i] for i in range(self.theta_hat.shape[0])])
+			#print(a_mean_with_sum)
 			#print(a, a_mean, a_upper_ci)
-			self.p[a] = a_mean + a_upper_ci
+			self.p[a] = a_mean_with_sum + a_upper_ci
 			#print(x.T.dot(np.linalg.inv(self.A).dot(x[a])))
 		# update parameters
 		#print(self.theta_hat)
@@ -55,10 +58,12 @@ class LinUCB:
 		#self.A[self.choosen_song_index] += np.outer(x, x)
 		A_inv = np.linalg.inv(self.A[recommended_song])
 		theta_hat = A_inv.dot(self.b[recommended_song])
-
+		#print(A_inv)
+		#print(self.song_features[recommended_song])
 		#print('theta', theta_hat)
 		#print('song', self.song_features[recommended_song])
 		a_mean = self.theta_hat.dot(self.song_features[recommended_song])
+		self.util.add_expected_rating(a_mean_with_sum)
 		a_mean_with_sum = sum([theta_hat[i]* self.song_features[recommended_song][i] for i in range(theta_hat.shape[0])])
 		print('Recommended', recommended_song, a_mean, a_mean_with_sum)
 		print(self.p)
@@ -75,6 +80,6 @@ class LinUCB:
 		#rating = theta.dot(x) * 0.1
 		#print(rating)
 		self.ratings.append(rating)
-		#self.A[self.choosen_song_index] += np.outer(x, x)
+		self.A[self.choosen_song_index] += np.outer(x, x)
 		self.b[self.choosen_song_index] += rating * x
 		#print(self.p)

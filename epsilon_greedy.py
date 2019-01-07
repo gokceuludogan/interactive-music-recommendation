@@ -45,6 +45,7 @@ class EpsilonGreedy:
 		x = self.util.get_features_of_history()
 		y_model = theta.T.dot(x)*(1 - np.exp(-t/s))
 		print("expected_rating", y_model[-1])
+		self.util.add_expected_rating(y_model[-1])
 		self.cumulative_regret = np.average(y - y_model)
 		
 	
