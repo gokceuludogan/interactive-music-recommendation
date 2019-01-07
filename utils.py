@@ -1,0 +1,84 @@
+import numpy as np 
+import matplotlib.pyplot as plt
+import pandas as pd
+import datetime
+import numpy as np
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+filepath = "data/last_fm_songs_with_features_shuf.csv"
+
+class Util:
+	def __init__(self):
+		self.history = []
+		self.data, self.song_names = get_data(filepath)
+		today = datetime.today()
+		start_time = today - relativedelta(minutes=1)
+		self.last_listened_times  = np.array([np.datetime64(start_time)] * self.data.shape[0]) 
+		self.epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
+
+	def add_recommendation(self, song_id, simulation):
+		self.history.append((song_id, -1))
+		#if simulation:
+		#	self.last_listened_times[song_id] = np.datetime64(datetime.now()) - np.timedelta64(np.random.randint(1000),'m')
+		#else:
+		self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (np.timedelta64(np.random.randint(5), 's') + 1)
+
+	def get_number_of_songs(self):
+		return self.data.shape[0]
+
+	def get_number_of_features(self):
+		return self.data.shape[1]
+
+	def add_rating(self, rating):
+		self.history[-1] = (self.history[-1][0], rating)
+
+	def get_history_times(self):
+		times = [(np.datetime64(datetime.now()) - self.last_listened_times[x[0]]).astype('timedelta64[ms]').astype('int') for x in self.history]
+		return np.array(times)
+
+	def get_features_of_history(self):
+		indices = [x[0] for x in self.history]
+		return self.data[indices].T
+
+	def get_all_times(self):
+		times = [(np.datetime64(datetime.now()) - x).astype('timedelta64[ms]').astype('int') for x in self.last_listened_times]
+		return np.array(times)/1000
+
+	def get_all_features(self):
+		return self.data.T	
+
+	def get_features_and_times_of_song(self, song_id):
+		print(datetime.now())
+		print(self.last_listened_times[song_id])
+		print('time',  (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype('timedelta64[ms]').astype('int') )
+		return self.data[song_id].T, (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype('timedelta64[ms]').astype('int')/1000
+	
+	def get_ratings(self):
+		return np.array([x[1] for x in self.history])	
+
+	def get_features_and_times(self):
+		times = self.get_all_times()
+		times_discretized = np.array([vectorize(i, self.epsilon) for i in times])
+		#print(times_discretized.shape)
+		concat_data =  np.append(self.data, times_discretized, axis=1)
+		xmax, xmin = concat_data.max(), concat_data.min()
+		return (concat_data - xmin)/(xmax - xmin)	
+
+def vectorize(t, epsilon):
+	# print(t)
+	# print(epsilon)
+	# print([t - epsilon])
+	v = np.concatenate([t - epsilon, [t,1]])
+	v[np.where(v < 0)] = 0
+	return v 
+
+
+def get_data(filepath, separator=';'):
+	data = pd.read_csv(filepath, delimiter=separator)
+	data.drop(['artist_name_lastfm', "tra_id", "Unnamed: 0", 'title_lastfm', 'track_id'], axis=1, inplace=True)
+	data['genre'] = data['genre'].astype('category').cat.codes
+	data_x = data.drop(['artist_name', 'title'], axis=1).values
+	xmax, xmin = data_x.max(), data_x.min()
+	data_x = (data_x - xmin)/(xmax - xmin)	
+	return data_x, data[['artist_name', 'title']]
+
