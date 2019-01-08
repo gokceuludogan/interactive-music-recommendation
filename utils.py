@@ -37,9 +37,12 @@ class Util:
     def add_expected_rating(self, rating):
         self.expected_ratings.append(rating)
 
+    def timedelta_to_minute(self, delta):
+        return delta.astype('timedelta64[ms]').astype('int')
+
     def get_history_times(self):
         times = [
-            (np.datetime64(datetime.now()) - self.last_listened_times[x[0]]).astype('timedelta64[ms]').astype('int') for
+            self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[x[0]]) for
             x in self.history]
         return np.array(times)
 
@@ -48,7 +51,7 @@ class Util:
         return self.data[indices].T
 
     def get_all_times(self):
-        times = [(np.datetime64(datetime.now()) - x).astype('timedelta64[ms]').astype('int') for x in
+        times = [self.timedelta_to_minute(np.datetime64(datetime.now()) - x) for x in
                  self.last_listened_times]
         return np.array(times)
 
@@ -63,10 +66,8 @@ class Util:
         print(datetime.now())
         print(self.last_listened_times[song_id])
         print('time',
-              (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype('timedelta64[ms]').astype(
-                  'int'))
-        return self.data[song_id].T, (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype(
-            'timedelta64[ms]').astype('int')
+              self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[song_id]))
+        return self.data[song_id].T, self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[song_id])
 
     def get_ratings(self):
         return np.array([x[1] for x in self.history])

@@ -34,7 +34,6 @@ class Bayes_UCB_V:
         return self.lambda_theta_N, self.eta_theta_N, self.lambda_beta_N, self.eta_beta_N
 
     def lower_bound(self):
-        print("b_n is ",self.b_N)
         return (self.a_0 * np.log(self.b_0)
                 + (self.a_0 - 1) * (digamma(self.a_N) - np.log(self.b_N))
                 - (self.b_0 * self.a_N / self.b_N)
