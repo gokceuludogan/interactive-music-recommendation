@@ -219,6 +219,7 @@ class BayesUCB:
         self.simulation = simulation
         self.util = utils.Util()
         self.recommend_song()
+        self.recommended_song_candidate = 0
 
     # self.util.add_expected_rating(0)
 

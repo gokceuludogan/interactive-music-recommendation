@@ -4,6 +4,7 @@ import epsilon_greedy
 import linucb
 from bayesucb import BayesUCB
 import matplotlib.pyplot as plt
+from sklearn.utils import shuffle
 
 
 def calculate_rating(theta, s, song_features, song_times):
@@ -15,11 +16,12 @@ def calculate_rating(theta, s, song_features, song_times):
     return theta.T.dot(song_features) * (1 - np.exp(-song_times / s)) * 10
 
 
-def generate_simulation(method, theta, s, length):
+def generate_simulation(song_names, method, theta, s, length):
+    model = BayesUCB()
     if method == 'Random':
         model = epsilon_greedy.EpsilonGreedy(1.0)
     elif method == 'Greedy':
-        model = epsilon_greedy.EpsilonGreedy(0.5)
+        model = epsilon_greedy.EpsilonGreedy(0.2)
     elif method == 'BayesUCB':
         model = BayesUCB()
     elif method == 'LinUCB':
@@ -33,29 +35,34 @@ def generate_simulation(method, theta, s, length):
         rating = calculate_rating(theta, s, features, times)
         print('rating: ', rating)
         model.feedback(rating)
+
     cum_regret = model.util.get_cumulative_regret()
-    running_average_rating = model.util.get_running_average_rating()
-    plt.figure(1, figsize=(10, 5))
+    fig1 = plt.figure(1, figsize=(10, 5))
     plt.plot(cum_regret)
     plt.title("Cumulative Regret")
-    plt.savefig(method + "_regret.png")
+    fig1.savefig(method + "_regret.png")
+    plt.close(fig1)
 
-    plt.figure(1, figsize=(10, 5))
-    plt.plot(running_average_rating)
-    plt.title("Running Average rating")
-    plt.savefig(method + "_rating.png")
+    cumulative_average_rating = model.util.get_cumulative_average_rating()
+    fig2 = plt.figure(1, figsize=(10, 5))
+    plt.plot(cumulative_average_rating)
+    plt.title("Cumulative Average Rating")
+    fig2.savefig(method + "_rating.png")
+    plt.close(fig2)
 
 
 def main():
+    np.random.seed(12)
     data, song_names = utils.get_data("data/last_fm_songs_with_features.csv")
+    data, song_names = shuffle(data, song_names, random_state=0)
     theta = np.random.random(data.shape[1])
     # s = 100 fine: 10 exploitation
-    s = 10
+    s = 1000
     length = 200
     # methods = ["Random", "Greedy", "LinUCB", "BayesUCB"]
-    methods = ["LinUCB"]
+    methods = ["BayesUCB"]
     for method in methods:
-        generate_simulation(method, theta, s, length)
+        generate_simulation(song_names, method, theta, s, length)
 
 
 if __name__ == '__main__':

@@ -12,17 +12,13 @@ class Util:
         self.history = []
         self.data, self.song_names = get_data(filepath)
         today = datetime.today()
-        start_time = today - relativedelta(minutes=1)
+        start_time = today - relativedelta(minutes=15)
         self.last_listened_times = np.array([np.datetime64(start_time)] * self.data.shape[0])
         self.epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
         self.expected_ratings = []
 
     def add_recommendation(self, song_id, simulation):
         self.history.append((song_id, -1))
-        # if simulation:
-        #	self.last_listened_times[song_id] = np.datetime64(datetime.now()) - np.timedelta64(np.random.randint(1000),'m')
-        # else:
-        self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (np.timedelta64(0, 's') + 1)
 
     def get_number_of_songs(self):
         return self.data.shape[0]
@@ -33,6 +29,9 @@ class Util:
     def add_rating(self, rating):
         print("add rating")
         self.history[-1] = (self.history[-1][0], rating)
+        song_id = self.history[-1][0]
+        self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (
+                    np.timedelta64(0, 'ms') + int(np.floor(np.random.rand() * 500)))
 
     def add_expected_rating(self, rating):
         self.expected_ratings.append(rating)
@@ -50,7 +49,7 @@ class Util:
     def get_all_times(self):
         times = [(np.datetime64(datetime.now()) - x).astype('timedelta64[ms]').astype('int') for x in
                  self.last_listened_times]
-        return np.array(times) / 1000
+        return np.array(times)
 
     def get_all_features(self):
         return self.data.T
@@ -62,7 +61,7 @@ class Util:
               (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype('timedelta64[ms]').astype(
                   'int'))
         return self.data[song_id].T, (np.datetime64(datetime.now()) - self.last_listened_times[song_id]).astype(
-            'timedelta64[ms]').astype('int') / 1000
+            'timedelta64[ms]').astype('int')
 
     def get_ratings(self):
         return np.array([x[1] for x in self.history])
@@ -80,9 +79,8 @@ class Util:
         print([i[1] for i in self.history[:-1]])
         return (np.absolute(np.array(self.expected_ratings) - np.array([i[1] for i in self.history[:-1]]))).cumsum()
 
-    def get_running_average_rating(self):
-        len_history = len(self.history)
-        return np.convolve([x[1] for x in self.history], np.ones((len_history,))/len_history, mode='valid')
+    def get_cumulative_average_rating(self):
+        return np.array([x[1] for x in self.history]).cumsum() / np.arange(1, len(self.history) + 1)
 
 
 def vectorize(t, epsilon):

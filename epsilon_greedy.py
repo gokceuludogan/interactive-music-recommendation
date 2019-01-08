@@ -38,6 +38,7 @@ class EpsilonGreedy:
         t = self.util.get_history_times()
         x = self.util.get_features_of_history()
         y_model = theta.T.dot(x) * (1 - np.exp(-t / s))
+        print('expected rating: ', y_model[-1])
         self.util.add_expected_rating(y_model[-1])
         self.cumulative_regret = np.average(y - y_model)
 
@@ -52,7 +53,8 @@ class EpsilonGreedy:
         s = position[-1]
         return theta, s
 
-    def optimization(self, params, *args):
+    @staticmethod
+    def optimization(params, *args):
         x = args[0]
         y = args[1]
         t = args[2]
