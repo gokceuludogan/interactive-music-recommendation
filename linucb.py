@@ -69,7 +69,7 @@ class LinUCB:
         print(self.p)
         print(self.song_features[recommended_song])
 
-        self.util.add_recommendation(recommended_song, self.simulation)
+        self.util.add_recommendation(recommended_song)
         return recommended_song
 
     def feedback(self, rating):

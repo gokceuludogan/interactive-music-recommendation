@@ -22,7 +22,7 @@ class EpsilonGreedy:
         else:
             song_id = self.recommended_song_candidate  # greedy choice
         self.recommended_song_ids.append(song_id)
-        self.util.add_recommendation(song_id, self.simulation)
+        self.util.add_recommendation(song_id)
 
     def feedback(self, rating):
         self.util.add_rating(rating)
