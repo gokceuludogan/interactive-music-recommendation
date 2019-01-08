@@ -3,7 +3,6 @@ from numpy.linalg import det, inv
 from scipy.special import digamma
 import utils
 
-
 class Bayes_UCB_V:
     def __init__(self, x, t, r):
         self.THRESHOLD = 10e-3
@@ -15,7 +14,7 @@ class Bayes_UCB_V:
         # TODO: How to initialize these variables?
         self.lambda_theta_N = np.identity(self.p)
         self.eta_theta_N = np.zeros((self.p, 1))
-        self.eta_beta_N = np.zeros((self.K, 1))
+        self.eta_beta_N = np.ones((self.K, 1))
         self.lambda_beta_N = np.identity(self.K)
         self.D_0 = np.identity(self.p)
         self.E_0 = np.identity(self.K)
@@ -35,6 +34,7 @@ class Bayes_UCB_V:
         return self.lambda_theta_N, self.eta_theta_N, self.lambda_beta_N, self.eta_beta_N
 
     def lower_bound(self):
+        print("b_n is ",self.b_N)
         return (self.a_0 * np.log(self.b_0)
                 + (self.a_0 - 1) * (digamma(self.a_N) - np.log(self.b_N))
                 - (self.b_0 * self.a_N / self.b_N)
@@ -161,7 +161,7 @@ class Bayes_UCB_V:
 
         b_N_update += (0.5 * self.sum1() - self.sum2() + self.b_0)
 
-        self.b_N = b_N_update
+        self.b_N = b_N_update.item()
 
     def expected_beta(self):
         return inv(self.lambda_beta_N).dot(self.eta_beta_N)
@@ -233,7 +233,7 @@ class BayesUCB:
             song_id = self.recommended_song_candidate
         self.recommended_song_ids.append(song_id)
         print(song_id)
-        self.util.add_recommendation(song_id, self.simulation)
+        self.util.add_recommendation(song_id)
 
     def feedback(self, rating):
         self.util.add_rating(rating)
@@ -266,15 +266,23 @@ class BayesUCB:
         t_var_coeff = inv(lambda_beta_N)
 
         # get quantiles for each song and choose argmax
-        N = features.shape[1]
+
+        all_data = self.util.get_all_features()
+        all_time_vectors = self.util.get_all_time_vectors()
+
+
+        N = all_data.shape[1]
         quantiles = []
         for i in range(N):
-            x_i = features[:, i].reshape((features.shape[0], 1))
-            t_i = time_vectors[:, i].reshape((time_vectors.shape[0], 1))
+            x_i = all_data[:, i].reshape((features.shape[0], 1))
+            t_i = all_time_vectors[:, i].reshape((time_vectors.shape[0], 1))
+
 
             quantiles.append(
                 calculate_quantile(x_i, t_i, x_mean_coeff, x_var_coeff, t_mean_coeff, t_var_coeff, 1 - 1 / (N + 1),
                                    10000))
+
+
         self.util.add_expected_rating(np.max(quantiles))
         print('expected rating', np.max(quantiles))
         return np.argmax(quantiles)

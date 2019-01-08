@@ -17,7 +17,8 @@ class Util:
         self.epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
         self.expected_ratings = []
 
-    def add_recommendation(self, song_id, simulation):
+
+    def add_recommendation(self, song_id):
         self.history.append((song_id, -1))
 
     def get_number_of_songs(self):
@@ -51,8 +52,12 @@ class Util:
                  self.last_listened_times]
         return np.array(times)
 
+
     def get_all_features(self):
         return self.data.T
+
+    def get_all_time_vectors(self):
+        return np.array([vectorize(i, self.epsilon) for i in self.get_all_times()]).T
 
     def get_features_and_times_of_song(self, song_id):
         print(datetime.now())
@@ -65,6 +70,7 @@ class Util:
 
     def get_ratings(self):
         return np.array([x[1] for x in self.history])
+
 
     def get_features_and_times(self):
         times = self.get_all_times()
