@@ -11,7 +11,6 @@ class Bayes_UCB_V:
         self.r = r  # ratings - dim : 1 x num_of_songs
         self.p, self.N = x.shape
         self.K = t.shape[0]
-        # TODO: How to initialize these variables?
         self.lambda_theta_N = np.identity(self.p)
         self.eta_theta_N = np.zeros((self.p, 1))
         self.eta_beta_N = np.ones((self.K, 1))
@@ -182,8 +181,7 @@ class Bayes_UCB_V:
 
 # Map time 't' to a vector. The epsilon below is the one from the paper
 def vectorize(t, epsilon):
-    #     print(t)
-    #     print(epsilon.shape)
+
     v = np.concatenate([t - epsilon, [t, 1]])
     v[np.where(v < 0)] = 0
 
@@ -212,27 +210,21 @@ epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
 
 class BayesUCB:
 
-    def __init__(self, simulation=True):
+    def __init__(self, datapath):
         self.epsilon = epsilon
         self.recommended_song_ids = []
-        self.simulation = simulation
-        self.util = utils.Util()
-        self.recommend_song()
+        self.util = utils.Util(datapath)
         self.recommended_song_candidate = 0
 
-    # self.util.add_expected_rating(0)
 
     def recommend(self):
-        return self.recommended_song_ids[-1]
-
-    def recommend_song(self):
         if len(self.recommended_song_ids) == 0:
             song_id = np.random.randint(self.util.get_number_of_songs())
         else:
             song_id = self.recommended_song_candidate
         self.recommended_song_ids.append(song_id)
-        print(song_id)
         self.util.add_recommendation(song_id)
+        return song_id
 
     def feedback(self, rating):
         self.util.add_rating(rating)
@@ -240,7 +232,6 @@ class BayesUCB:
         x = self.util.get_features_of_history()
         y = self.util.get_ratings()
         self.recommended_song_candidate = self.driver(x, t, y, epsilon)
-        self.recommend_song()
 
     def driver(self, features, last_listened, ratings, epsilon):
         time_vectors = np.zeros((len(last_listened), len(epsilon) + 2))
@@ -258,8 +249,6 @@ class BayesUCB:
         # section 4.2.3 : page 11
         x_mean_coeff = inv(lambda_theta_N).dot(eta_theta_N)
         x_var_coeff = inv(lambda_theta_N)
-        # print(lambda_theta_N)
-        # print(eta_theta_N)
 
         t_mean_coeff = inv(lambda_beta_N).dot(eta_beta_N)
         t_var_coeff = inv(lambda_beta_N)
@@ -276,11 +265,9 @@ class BayesUCB:
             x_i = all_data[:, i].reshape((features.shape[0], 1))
             t_i = all_time_vectors[:, i].reshape((time_vectors.shape[0], 1))
 
-
             quantiles.append(
                 calculate_quantile(x_i, t_i, x_mean_coeff, x_var_coeff, t_mean_coeff, t_var_coeff, 1 - 1 / (N + 1),
                                    10000))
-
 
         self.util.add_expected_rating(np.max(quantiles))
         print('expected rating', np.max(quantiles))

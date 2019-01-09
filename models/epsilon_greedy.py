@@ -4,25 +4,22 @@ import utils
 
 
 class EpsilonGreedy:
-    def __init__(self, epsilon, simulation=True):
-        self.util = utils.Util()
+    def __init__(self, epsilon, datapath):
+        self.util = utils.Util(datapath)
         self.epsilon = epsilon
         self.recommended_song_ids = []
-        self.simulation = simulation
         self.cumulative_regret = 0
-        self.recommend_song()
+        #self.recommend_song()
         self.recommended_song_candidate = 0
 
     def recommend(self):
-        return self.recommended_song_ids[-1]
-
-    def recommend_song(self):
         if len(self.recommended_song_ids) == 0 or self.epsilon > np.random.rand():
             song_id = np.random.randint(self.util.get_number_of_songs())  # random choice
         else:
             song_id = self.recommended_song_candidate  # greedy choice
         self.recommended_song_ids.append(song_id)
         self.util.add_recommendation(song_id)
+        return song_id
 
     def feedback(self, rating):
         self.util.add_rating(rating)
@@ -31,7 +28,6 @@ class EpsilonGreedy:
         theta, s = self.calculate_theta_s()
         self.recommended_song_candidate = np.argmax(theta.T.dot(x) * (1 - np.exp(-t / s)))
         self.calculate_cumulative_regret(theta, s)
-        self.recommend_song()
 
     def calculate_cumulative_regret(self, theta, s):
         y = self.util.get_ratings()
