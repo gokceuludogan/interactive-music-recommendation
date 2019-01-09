@@ -4,19 +4,16 @@ import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-filepath = "data/last_fm_songs_with_features.csv"
-
 
 class Util:
-    def __init__(self):
+    def __init__(self, datapath):
         self.history = []
-        self.data, self.song_names = get_data(filepath)
+        self.data, self.song_names = get_data(datapath)
         today = datetime.today()
         start_time = today - relativedelta(minutes=15)
         self.last_listened_times = np.array([np.datetime64(start_time)] * self.data.shape[0])
         self.epsilon = np.array([np.power(2, i) for i in np.arange(0, 16, dtype=float)])
         self.expected_ratings = []
-
 
     def add_recommendation(self, song_id):
         self.history.append((song_id, -1))
@@ -28,7 +25,6 @@ class Util:
         return self.data.shape[1]
 
     def add_rating(self, rating):
-        print("add rating")
         self.history[-1] = (self.history[-1][0], rating)
         song_id = self.history[-1][0]
         self.last_listened_times[song_id] = np.datetime64(datetime.now()) - (
@@ -55,7 +51,6 @@ class Util:
                  self.last_listened_times]
         return np.array(times)
 
-
     def get_all_features(self):
         return self.data.T
 
@@ -63,37 +58,27 @@ class Util:
         return np.array([vectorize(i, self.epsilon) for i in self.get_all_times()]).T
 
     def get_features_and_times_of_song(self, song_id):
-        print(datetime.now())
-        print(self.last_listened_times[song_id])
-        print('time',
-              self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[song_id]))
+        #print('time', self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[song_id]))
         return self.data[song_id].T, self.timedelta_to_minute(np.datetime64(datetime.now()) - self.last_listened_times[song_id])
 
     def get_ratings(self):
         return np.array([x[1] for x in self.history])
 
-
     def get_features_and_times(self):
         times = self.get_all_times()
-        times_discretized = np.array([vectorize(i, self.epsilon) for i in times])
-        # print(times_discretized.shape)
+        #times_discretized = np.array([vectorize(i, self.epsilon) for i in times])
         concat_data = np.append(self.data, times[:, None], axis=1)
         xmax, xmin = concat_data.max(), concat_data.min()
         return (concat_data - xmin) / (xmax - xmin)
 
     def get_cumulative_regret(self):
-        print(self.expected_ratings)
-        print([i[1] for i in self.history[:-1]])
-        return (np.absolute(np.array(self.expected_ratings) - np.array([i[1] for i in self.history[:-1]]))).cumsum()
+        return (np.absolute(np.array(self.expected_ratings) - np.array([i[1] for i in self.history]))).cumsum()
 
     def get_cumulative_average_rating(self):
         return np.array([x[1] for x in self.history]).cumsum() / np.arange(1, len(self.history) + 1)
 
 
 def vectorize(t, epsilon):
-    # print(t)
-    # print(epsilon)
-    # print([t - epsilon])
     v = np.concatenate([t - epsilon, [t, 1]])
     v[np.where(v < 0)] = 0
     return v
