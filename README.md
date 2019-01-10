@@ -33,4 +33,5 @@ The methods implemented to solve the model are:
 ## References
 
 [1] Wang, Xinxi, et al. "Exploration in interactive personalized music recommendation: a reinforcement learning approach." ACM Transactions on Multimedia Computing, Communications, and Applications (TOMM) 11.1 (2014): 7.
+
 [2] Li, Lihong, et al. "A contextual-bandit approach to personalized news article recommendation." Proceedings of the 19th international conference on World wide web. ACM, 2010.
