@@ -1,6 +1,6 @@
 # interactive-music-recommendation
 
-A personalized and interactive music recommendation tool with bandit approach. [A Bandit Approach to Music Recommendation notebook](https://github.com/gokceuludogan/interactive-music-recommendation/blob/master/A%20Bandit%20Approach%20to%20Music%20Recommendation.ipynb) contains an overview of model.  
+A personalized and interactive music recommendation tool with bandit approach. [A Bandit Approach to Music Recommendation notebook](https://github.com/gokceuludogan/interactive-music-recommendation/blob/master/notebooks/A%20Bandit%20Approach%20to%20Music%20Recommendation.ipynb) contains an overview of model.  
 
 ## Contributors
 
